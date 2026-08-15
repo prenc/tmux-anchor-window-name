@@ -1,0 +1,190 @@
+# tmux-anchor-window-name
+
+[![Tests](https://github.com/prenc/tmux-anchor-window-name/actions/workflows/tests.yml/badge.svg)](https://github.com/prenc/tmux-anchor-window-name/actions/workflows/tests.yml)
+[![tmux plugin](https://img.shields.io/badge/tmux-plugin-1BB91F?logo=tmux)](https://github.com/tmux/tmux)
+[![MIT license](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+
+Give tmux windows stable, useful names based on the folders where you work.
+
+`tmux-anchor-window-name` walks upward from the active pane, finds the nearest
+folder containing a configured anchor, and uses that folder's name for the
+window. Inside any subdirectory of `~/code/my-project/.git/`, your window is
+simply named `my-project`.
+
+No matching anchor? The window falls back to the active command. Named a window
+yourself? Your manual name always wins.
+
+## Features
+
+- Names windows after the nearest anchored parent folder
+- Uses a `.git/` directory as the sensible zero-configuration default
+- Supports directory, file, and type-agnostic anchors
+- Handles several project types at once, such as Git, Python, and custom roots
+- Updates after `cd` in Bash, Zsh, and Fish
+- Follows the active pane when panes are selected or closed
+- Preserves names set with `rename-window` or `new-window -n`
+- Falls back to the active pane's command outside an anchored folder
+- Supports custom and multi-character anchor separators
+- Coexists with existing indexed tmux hooks
+- Ships with real isolated-tmux integration tests
+
+## Installation
+
+### TPM
+
+Add the plugin before TPM's final `run` line in `tmux.conf`:
+
+```tmux
+set -g @plugin 'prenc/tmux-anchor-window-name'
+```
+
+Reload tmux and press `prefix + I` to install it.
+
+### Local checkout
+
+To use a local checkout directly:
+
+```tmux
+run-shell '~/Documents/tmux-anchor-window-name/tmux-anchor-window-name.tmux'
+```
+
+Then reload your configuration:
+
+```sh
+tmux source-file ~/.tmux.conf
+```
+
+## Update names after `cd`
+
+tmux detects pane and window changes itself, but it does not emit an event when
+a shell changes directory. Source the integration for your shell to update the
+window immediately after `cd`.
+
+### Bash
+
+```bash
+source ~/.tmux/plugins/tmux-anchor-window-name/shell/tmux-anchor-window-name.bash
+```
+
+The Bash integration preserves the existing `PROMPT_COMMAND`, supports both
+string and array forms, and only invokes tmux when `PWD` changes.
+
+### Zsh
+
+```zsh
+source ~/.tmux/plugins/tmux-anchor-window-name/shell/tmux-anchor-window-name.zsh
+```
+
+The Zsh integration installs an idempotent `chpwd` hook.
+
+### Fish
+
+```fish
+source ~/.tmux/plugins/tmux-anchor-window-name/shell/tmux-anchor-window-name.fish
+```
+
+The Fish integration listens for changes to `PWD`.
+
+For a local checkout, replace `~/.tmux/plugins/tmux-anchor-window-name` in the
+examples with `~/Documents/tmux-anchor-window-name`. All integrations are safe
+to source repeatedly and do nothing outside tmux.
+
+## Configuration
+
+Put options before the plugin is loaded. The defaults require no configuration.
+
+### Choose anchors
+
+An anchor has the form `type:marker`. Combine anchors in a comma-separated list:
+
+```tmux
+set -g @tmux-anchor-window-name-anchors 'dir:.git,dir:.venv,file:pyproject.toml,any:.project-root'
+```
+
+| Type | Matches |
+| --- | --- |
+| `dir` | A directory, including a symlink resolving to a directory |
+| `file` | A regular file, including a symlink resolving to a file |
+| `any` | Any filesystem entry, including a broken symlink |
+
+The default is:
+
+```tmux
+set -g @tmux-anchor-window-name-anchors 'dir:.git'
+```
+
+This matches normal Git repositories while intentionally excluding Git
+worktrees, where `.git` is a file. To support both repositories and worktrees:
+
+```tmux
+set -g @tmux-anchor-window-name-anchors 'any:.git'
+```
+
+The nearest matching parent wins. If several anchors match the same folder,
+their order does not matter because the resulting folder name is identical.
+
+### Change the separator
+
+The separator defaults to a comma:
+
+```tmux
+set -g @tmux-anchor-window-name-separator ','
+```
+
+It can be any nonempty literal string except `:`, which separates the anchor
+type from its marker:
+
+```tmux
+set -g @tmux-anchor-window-name-separator '|'
+set -g @tmux-anchor-window-name-anchors 'dir:.git|dir:.venv|file:pyproject.toml'
+```
+
+Whitespace around separators is ignored. Marker names may contain whitespace,
+but cannot contain the configured separator.
+
+## Manual names
+
+tmux disables automatic renaming when you use `rename-window` or pass `-n` to
+`new-window`. The plugin respects that state, so manual names survive directory
+changes, pane switches, and pane closure.
+
+To return a window to automatic naming:
+
+```sh
+tmux set-window-option automatic-rename on
+```
+
+Its name will update on the next pane event or directory change.
+
+## Requirements
+
+- tmux
+- A POSIX-compatible shell
+- `sed`
+- Bash, Zsh, or Fish only for that shell's optional `cd` integration
+
+## Testing
+
+The suite uses [Bats](https://github.com/bats-core/bats-core) and launches a
+fresh, isolated tmux server for every integration test:
+
+```sh
+./tests/run.sh
+```
+
+Or invoke Bats directly:
+
+```sh
+bats --print-output-on-failure tests
+```
+
+The suite covers anchor types and parsing, separators, nearest-parent lookup,
+initial and existing windows, command fallback, pane selection and closure,
+inactive panes, manual and explicit names, plugin reloads, hook coexistence,
+Git worktrees, special characters, and real `cd` behavior in Bash, Zsh, and
+Fish. GitHub Actions runs syntax checks, ShellCheck, and the complete suite on
+every push and pull request.
+
+## License
+
+[MIT](LICENSE)

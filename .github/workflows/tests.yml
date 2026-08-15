@@ -1,0 +1,41 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Install test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes bats fish shellcheck tmux zsh
+
+      - name: Check shell syntax
+        run: |
+          sh -n tmux-anchor-window-name.tmux scripts/folder-name scripts/update-window-name tests/run.sh
+          bash -n shell/tmux-anchor-window-name.bash tests/test_helper.bash
+          zsh -n shell/tmux-anchor-window-name.zsh
+          fish -n shell/tmux-anchor-window-name.fish
+
+      - name: Run ShellCheck
+        run: |
+          shellcheck tmux-anchor-window-name.tmux scripts/folder-name scripts/update-window-name tests/run.sh
+          shellcheck --shell=bash shell/tmux-anchor-window-name.bash tests/test_helper.bash
+
+      - name: Run tests
+        run: bats --print-output-on-failure tests

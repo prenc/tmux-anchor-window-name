@@ -1,0 +1,74 @@
+#!/bin/sh
+
+directory=$1
+anchors=${2:-dir:.git}
+separator=${3:-,}
+
+[ -n "$directory" ] || exit 1
+case $separator in
+    ''|:)
+        separator=,
+        ;;
+esac
+
+matches_anchor() {
+    search_directory=$1
+    remaining_anchors=$anchors
+
+    while :; do
+        case $remaining_anchors in
+            *"$separator"*)
+                anchor=${remaining_anchors%%"$separator"*}
+                remaining_anchors=${remaining_anchors#*"$separator"}
+                has_more=true
+                ;;
+            *)
+                anchor=$remaining_anchors
+                remaining_anchors=
+                has_more=false
+                ;;
+        esac
+
+        # Permit readable lists such as "dir:.git, file:pyproject.toml" while
+        # preserving whitespace inside marker names.
+        anchor=${anchor#"${anchor%%[![:space:]]*}"}
+        anchor=${anchor%"${anchor##*[![:space:]]}"}
+
+        anchor_type=${anchor%%:*}
+        marker=${anchor#*:}
+
+        if [ "$anchor_type" != "$anchor" ] && [ -n "$marker" ]; then
+            candidate=$search_directory/$marker
+            case $anchor_type in
+                dir)
+                    [ -d "$candidate" ] && return 0
+                    ;;
+                file)
+                    [ -f "$candidate" ] && return 0
+                    ;;
+                any)
+                    { [ -e "$candidate" ] || [ -L "$candidate" ]; } && return 0
+                    ;;
+            esac
+        fi
+
+        [ "$has_more" = true ] || break
+    done
+
+    return 1
+}
+
+while [ -n "$directory" ]; do
+    if matches_anchor "$directory"; then
+        basename "$directory"
+        exit 0
+    fi
+
+    [ "$directory" = / ] && break
+
+    parent=$(dirname "$directory")
+    [ "$parent" = "$directory" ] && break
+    directory=$parent
+done
+
+exit 1

@@ -54,40 +54,53 @@ Then reload your configuration:
 tmux source-file ~/.tmux.conf
 ```
 
-## Update names after `cd`
+## Install the shell integration
 
-tmux detects pane and window changes itself, but it does not emit an event when
-a shell changes directory. Source the integration for your shell to update the
-window immediately after `cd`.
+tmux does not emit an event when a shell changes directory. Enable the
+integration for your shell after installing the plugin to update names after
+`cd`.
+
+Fish automatically loads files from `~/.config/fish/conf.d`. Bash and Zsh do
+not have an equivalent universally loaded directory, so add the appropriate
+line to the shell's startup file.
 
 ### Bash
 
-```bash
-source ~/.tmux/plugins/tmux-anchor-window-name/shell/tmux-anchor-window-name.bash
-```
+Run:
 
-The Bash integration preserves the existing `PROMPT_COMMAND`, supports both
-string and array forms, and only invokes tmux when `PWD` changes.
+```bash
+touch "$HOME/.bashrc"
+line='source "$HOME/.tmux/plugins/tmux-anchor-window-name/shell/tmux-anchor-window-name.bash"'
+grep -qxF "$line" "$HOME/.bashrc" || printf '\n%s\n' "$line" >> "$HOME/.bashrc"
+source "$HOME/.bashrc"
+```
 
 ### Zsh
 
-```zsh
-source ~/.tmux/plugins/tmux-anchor-window-name/shell/tmux-anchor-window-name.zsh
-```
+Run:
 
-The Zsh integration installs an idempotent `chpwd` hook.
+```zsh
+zshrc=${ZDOTDIR:-$HOME}/.zshrc
+touch "$zshrc"
+line='source "$HOME/.tmux/plugins/tmux-anchor-window-name/shell/tmux-anchor-window-name.zsh"'
+grep -qxF "$line" "$zshrc" || printf '\n%s\n' "$line" >> "$zshrc"
+source "$zshrc"
+```
 
 ### Fish
 
+Link the integration into Fish's `conf.d` directory:
+
 ```fish
-source ~/.tmux/plugins/tmux-anchor-window-name/shell/tmux-anchor-window-name.fish
+mkdir -p "$HOME/.config/fish/conf.d"
+ln -s \
+    "$HOME/.tmux/plugins/tmux-anchor-window-name/shell/tmux-anchor-window-name.fish" \
+    "$HOME/.config/fish/conf.d/tmux-anchor-window-name.fish"
+source "$HOME/.config/fish/conf.d/tmux-anchor-window-name.fish"
 ```
 
-The Fish integration listens for changes to `PWD`.
-
 For a local checkout, replace `~/.tmux/plugins/tmux-anchor-window-name` in the
-examples with `~/Documents/tmux-anchor-window-name`. All integrations are safe
-to source repeatedly and do nothing outside tmux.
+examples with the checkout path.
 
 ## Configuration
 

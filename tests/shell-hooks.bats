@@ -6,7 +6,7 @@ setup() {
 
 @test "Bash string PROMPT_COMMAND is preserved and hook registration is idempotent" {
     run bash --noprofile --norc -c \
-        "PROMPT_COMMAND='existing-command'; . '$PLUGIN_DIR/shell/tmux-anchor-window-name.bash'; . '$PLUGIN_DIR/shell/tmux-anchor-window-name.bash'; printf '%s' \"$PROMPT_COMMAND\""
+        "PROMPT_COMMAND='existing-command'; . '$PLUGIN_DIR/shell/tmux-anchor-window-name.bash'; . '$PLUGIN_DIR/shell/tmux-anchor-window-name.bash'; printf '%s' \"\$PROMPT_COMMAND\""
 
     [[ $status -eq 0 ]]
     [[ $output == 'existing-command;__tmux_anchor_window_name_update' ]]

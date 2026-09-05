@@ -52,6 +52,11 @@ teardown() {
     wait_for_name "$WINDOW_ID" sh
 }
 
+@test "fallback command name with a doubled hash is stored literally" {
+    start_session "$TEST_ROOT/plain" "$TEST_ROOT/command##42" 30
+    wait_for_name "$WINDOW_ID" 'command##42'
+}
+
 @test "custom separator is used by the tmux updater" {
     start_session "$TEST_ROOT/project # one/src" sh
     tmux_test set-option -g @tmux-anchor-window-name-separator '|'

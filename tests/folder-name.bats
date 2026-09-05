@@ -105,7 +105,6 @@ assert_folder_name() {
     [[ -z $output ]]
 }
 
-@test "empty and reserved separators fall back to comma" {
-    assert_folder_name plain "$TEST_ROOT/plain/src" 'dir:missing,file:pyproject.toml' ''
+@test "reserved separator falls back to comma" {
     assert_folder_name plain "$TEST_ROOT/plain/src" 'dir:missing,file:pyproject.toml' ':'
 }

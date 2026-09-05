@@ -22,6 +22,22 @@ setup() {
     [[ $output != *'[2]='* ]]
 }
 
+@test "Bash hook makes no tmux call when PWD is unchanged" {
+    mkdir -p "$BATS_TEST_TMPDIR/bin"
+    printf '%s\n' \
+        '#!/bin/sh' \
+        'printf "%s\n" "$*" >> "${TMUX_CALL_LOG:?}"' \
+        'exit 0' >"$BATS_TEST_TMPDIR/bin/tmux"
+    chmod +x "$BATS_TEST_TMPDIR/bin/tmux"
+
+    TMUX_CALL_LOG="$BATS_TEST_TMPDIR/tmux-calls.log"
+    run env PATH="$BATS_TEST_TMPDIR/bin:$PATH" TMUX_PANE=%0 \
+        TMUX_CALL_LOG="$TMUX_CALL_LOG" bash --noprofile --norc -ic \
+        ". '$PLUGIN_DIR/shell/tmux-anchor-window-name.bash'; : >'$TMUX_CALL_LOG'; __tmux_anchor_window_name_update; [[ ! -s '$TMUX_CALL_LOG' ]]"
+
+    [[ $status -eq 0 ]]
+}
+
 @test "Zsh chpwd hook registration is idempotent" {
     command -v zsh >/dev/null 2>&1 || skip 'zsh is not installed'
     run zsh -f -c \

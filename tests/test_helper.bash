@@ -12,6 +12,7 @@ setup_tmux_fixture() {
     printf 'gitdir: elsewhere\n' >"$TEST_ROOT/worktree/.git"
     mkdir -p "$TEST_ROOT/hash##42/.git" "$TEST_ROOT/hash##42/src"
     mkdir -p "$TEST_ROOT/job#(touch tawn-job-marker)/.git" "$TEST_ROOT/job#(touch tawn-job-marker)/src"
+    cp "$(command -v sleep)" "$TEST_ROOT/command##42"
 
     printf '%s\n' \
         "set -g @tmux-anchor-window-name-anchors 'dir:.git'" \

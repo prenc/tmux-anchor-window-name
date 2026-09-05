@@ -1,6 +1,8 @@
 # Update the tmux window after Zsh changes its working directory.
 
 __tmux_anchor_window_name_update() {
+    [[ -o interactive ]] || return 0
+
     [[ -n ${TMUX_PANE:-} ]] || return 0
 
     local plugin_dir

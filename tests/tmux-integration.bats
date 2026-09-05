@@ -15,6 +15,36 @@ teardown() {
     wait_for_name "$WINDOW_ID" 'project # one'
 }
 
+@test "folder name with a doubled hash is stored literally by the rename step" {
+    start_session "$TEST_ROOT/plain" sh
+    tmux_test send-keys -t "$PANE_ID" "cd '$TEST_ROOT/hash##42/src'" Enter
+    wait_for_path "$PANE_ID" "$TEST_ROOT/hash##42/src"
+    split_pane=$(tmux_test split-window -P -F '#{pane_id}' \
+        -t "$WINDOW_ID" -c "$TEST_ROOT/plain" sh)
+    wait_for_name "$WINDOW_ID" sh
+    tmux_test select-pane -t "$PANE_ID"
+    assert_immediate_name "$WINDOW_ID" sh 'hash##42'
+    wait_for_name "$WINDOW_ID" 'hash##42'
+}
+
+@test "folder name with a format job is stored literally and spawns no job" {
+    rm -f "$PWD/tawn-job-marker"
+    start_session "$TEST_ROOT/plain" sh
+    tmux_test send-keys -t "$PANE_ID" \
+        "cd '$TEST_ROOT/job#(touch tawn-job-marker)/src'" Enter
+    wait_for_path "$PANE_ID" "$TEST_ROOT/job#(touch tawn-job-marker)/src"
+    split_pane=$(tmux_test split-window -P -F '#{pane_id}' \
+        -t "$WINDOW_ID" -c "$TEST_ROOT/plain" sh)
+    wait_for_name "$WINDOW_ID" sh
+    tmux_test select-pane -t "$PANE_ID"
+    assert_immediate_name "$WINDOW_ID" sh 'job#(touch tawn-job-marker)'
+    # A registered format job would fork a shell child almost immediately;
+    # give a spurious job a chance to run before asserting it never started.
+    sleep 0.5
+    [[ ! -e "$PWD/tawn-job-marker" ]]
+    [[ ! -e "$TEST_ROOT/tawn-job-marker" ]]
+}
+
 @test "window falls back to the active command when no anchor matches" {
     start_session "$TEST_ROOT/plain" sh
     tmux_test set-option -g @tmux-anchor-window-name-anchors "dir:$ANCHOR_MARKER"

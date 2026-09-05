@@ -20,10 +20,11 @@ separator=$(tmux show-options -gqv @tmux-anchor-window-name-separator 2>/dev/nul
 
 if folder_name=$("$script_dir/folder-name" "$directory" "$anchors" "$separator"); then
     rename_format=$(printf '%s' "$folder_name" | sed 's/#/##/g')
-    window_name=$folder_name
+    window_name=$rename_format
 else
     rename_format='#{pane_current_command}'
     window_name=$(tmux display-message -p -t "$target_pane" '#{pane_current_command}' 2>/dev/null) || exit 0
+    window_name=$(printf '%s' "$window_name" | sed 's/#/##/g')
 fi
 [ -n "$window_name" ] || exit 0
 

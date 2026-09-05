@@ -1,6 +1,8 @@
 # Update the tmux window after Bash changes its working directory.
 
 __tmux_anchor_window_name_update() {
+    [[ $- == *i* ]] || return 0
+
     if [[ ${__tmux_anchor_window_name_last_pwd+x} == x &&
           $__tmux_anchor_window_name_last_pwd == "$PWD" ]]; then
         return 0

@@ -9,4 +9,4 @@ if ! command -v bats >/dev/null 2>&1; then
     exit 127
 fi
 
-exec bats "$test_dir"
+exec bats --print-output-on-failure "$test_dir"

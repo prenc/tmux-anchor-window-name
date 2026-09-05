@@ -20,7 +20,14 @@ assert_folder_name() {
     expected=$1
     directory=$2
     anchors=${3:-dir:.git}
-    separator=${4:-,}
+    # A passed-but-empty separator must reach the script so that its
+    # documented empty-separator fallback is what gets exercised; only an
+    # absent argument is defaulted to a comma here.
+    if [ -n "${4+x}" ]; then
+        separator=$4
+    else
+        separator=,
+    fi
 
     run "$FOLDER_NAME" "$directory" "$anchors" "$separator"
     [[ $status -eq 0 ]]
@@ -65,6 +72,12 @@ assert_folder_name() {
 
 @test "comma is the default separator" {
     assert_folder_name plain "$TEST_ROOT/plain/src" 'dir:missing,file:pyproject.toml'
+}
+
+@test "explicitly empty separator argument falls back to comma" {
+    run "$FOLDER_NAME" "$TEST_ROOT/plain/src" 'dir:missing,file:pyproject.toml' ''
+    [[ $status -eq 0 ]]
+    [[ $output == plain ]]
 }
 
 @test "separator is configurable and may contain multiple characters" {

@@ -1,4 +1,4 @@
-# AGENTS.md
+# Repository Instructions
 
 This repository contains a tmux plugin that names a window after the nearest
 parent folder containing a configured anchor. Preserve the plugin's small,

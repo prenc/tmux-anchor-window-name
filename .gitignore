@@ -1,0 +1,9 @@
+# Local development environment
+.envrc
+
+# Agent tooling
+.codex/
+.qwen/
+
+# Managed Git worktrees
+.worktrees/

@@ -45,8 +45,11 @@ Reload tmux and press `prefix + I` to install it.
 To use a local checkout directly:
 
 ```tmux
-run-shell '~/Documents/tmux-anchor-window-name/tmux-anchor-window-name.tmux'
+run-shell '~/tmux-anchor-window-name/tmux-anchor-window-name.tmux'
 ```
+
+If your checkout is elsewhere, replace `~/tmux-anchor-window-name` with its
+path.
 
 Then reload your configuration:
 
@@ -99,8 +102,9 @@ ln -s \
 source "$HOME/.config/fish/conf.d/tmux-anchor-window-name.fish"
 ```
 
-For a local checkout, replace `~/.tmux/plugins/tmux-anchor-window-name` in the
-examples with the checkout path.
+For the example local checkout above, replace
+`~/.tmux/plugins/tmux-anchor-window-name` in the shell-integration commands
+with `~/tmux-anchor-window-name`.
 
 ## Configuration
 
@@ -175,29 +179,3 @@ Its name will update on the next pane event or directory change.
 - A POSIX-compatible shell
 - `sed`
 - Bash, Zsh, or Fish only for that shell's optional `cd` integration
-
-## Testing
-
-The suite uses [Bats](https://github.com/bats-core/bats-core) and launches a
-fresh, isolated tmux server for every integration test:
-
-```sh
-./tests/run.sh
-```
-
-Or invoke Bats directly:
-
-```sh
-bats --print-output-on-failure tests
-```
-
-The suite covers anchor types and parsing, separators, nearest-parent lookup,
-initial and existing windows, command fallback, pane selection and closure,
-inactive panes, manual and explicit names, plugin reloads, hook coexistence,
-Git worktrees, special characters, and real `cd` behavior in Bash, Zsh, and
-Fish. GitHub Actions runs syntax checks, ShellCheck, and the complete suite on
-every push and pull request.
-
-## License
-
-[MIT](LICENSE)

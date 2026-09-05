@@ -16,7 +16,14 @@ concurrency:
 
 jobs:
   test:
-    runs-on: ubuntu-latest
+    name: tmux (${{ matrix.tmux }})
+    runs-on: ubuntu-24.04
+    strategy:
+      fail-fast: false
+      matrix:
+        tmux:
+          - ubuntu
+          - homebrew-latest
 
     steps:
       - name: Check out repository
@@ -25,7 +32,20 @@ jobs:
       - name: Install test dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --yes bats fish shellcheck tmux zsh
+          sudo apt-get install --yes bats fish shellcheck zsh
+
+      - name: Install Ubuntu tmux
+        if: matrix.tmux == 'ubuntu'
+        run: sudo apt-get install --yes tmux
+
+      - name: Install latest tmux with Homebrew
+        if: matrix.tmux == 'homebrew-latest'
+        run: |
+          /home/linuxbrew/.linuxbrew/bin/brew install tmux
+          echo "/home/linuxbrew/.linuxbrew/bin" >> "$GITHUB_PATH"
+
+      - name: Show tmux version
+        run: tmux -V
 
       - name: Check shell syntax
         run: |
